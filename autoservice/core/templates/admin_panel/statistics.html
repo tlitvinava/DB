@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Статистика{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Статистика</h2>
+
+  <h3>Общие показатели</h3>
+  <ul>
+    <li>Всего заказов: <strong>{{ orders_count }}</strong></li>
+  </ul>
+
+  <h3>Заказы по статусам</h3>
+  <table>
+    <thead><tr><th>Статус</th><th>Количество</th></tr></thead>
+    <tbody>
+      {% for s in orders_by_status %}
+        <tr><td>{{ s.status__statusname }}</td><td>{{ s.count }}</td></tr>
+      {% empty %}
+        <tr><td colspan="2">Нет данных</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Топ мастеров по количеству заказов</h3>
+  <table>
+    <thead><tr><th>Мастер</th><th>Заказов</th></tr></thead>
+    <tbody>
+      {% for m in top_masters %}
+        <tr><td>{{ m.master__name }} {{ m.master__surname }}</td><td>{{ m.count }}</td></tr>
+      {% empty %}
+        <tr><td colspan="2">Нет данных</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

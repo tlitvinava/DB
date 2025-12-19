@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Услуги{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Услуги</h2>
+
+  <div style="margin-bottom:10px;">
+    <form method="get" action="">
+      <input type="text" name="q" placeholder="Поиск..." value="{{ query }}">
+      <button type="submit">Искать</button>
+    </form>
+    <a href="?sort=asc{% if query %}&q={{ query }}{% endif %}">↑</a>
+    <a href="?sort=desc{% if query %}&q={{ query }}{% endif %}">↓</a>
+
+    {% if user.is_authenticated and user.role and user.role.rolename == "admin" %}
+      <a class="btn" href="{% url 'service_create' %}">Создать услугу</a>
+    {% endif %}
+    <a class="btn secondary" href="{% url 'admin_panel' %}">Назад</a>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Название</th>
+        <th>Цена</th>
+        {% if user.is_authenticated and user.role and user.role.rolename == "admin" %}
+          <th>Действия</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in page %}
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ item.price }}</td>
+          {% if user.is_authenticated and user.role and user.role.rolename == "admin" %}
+            <td class="actions">
+              <a class="btn secondary" href="{% url 'service_edit' item.pk %}">Редактировать</a>
+              <form action="{% url 'service_delete' item.pk %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button class="btn danger" type="submit">Удалить</button>
+              </form>
+            </td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="{% if user.is_authenticated and user.role and user.role.rolename == "admin" %}3{% else %}2{% endif %}">
+            Услуг нет
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    {% if page.has_previous %}
+      <a href="?page={{ page.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">← Назад</a>
+    {% endif %}
+    <span>Страница {{ page.number }} из {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}
+      <a href="?page={{ page.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Вперёд →</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

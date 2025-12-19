@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Логи действий{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Логи</h2>
+  <table>
+    <thead><tr><th>Время</th><th>Пользователь</th><th>Таблица</th><th>Операция</th><th>Данные</th></tr></thead>
+    <tbody>
+      {% for log in page %}
+        <tr>
+          <td>{{ log.action_timestamp }}</td>
+          <td>{% if log.userid %}{{ log.userid }}{% else %}Аноним{% endif %}</td>
+          <td>{{ log.table_name }}</td>
+          <td>{{ log.operation }}</td>
+          <td><pre style="white-space:pre-wrap;">{{ log.row_data }}</pre></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">Логов нет</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">← Назад</a>{% endif %}
+    <span>Страница {{ page.number }} из {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Вперёд →</a>{% endif %}
+  </div>
+</div>
+{% endblock %}

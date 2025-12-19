@@ -1,0 +1,13 @@
+<div class="admin-tabs">
+  <div class="tabs">
+    <a class="tab {% if request.path == '/admin-panel/' %}active{% endif %}" href="{% url 'admin_panel' %}">Панель</a>
+    <a class="tab {% if request.path|slice:0:14 == '/admin-panel/' and request.path|slice:14:22 == 'masters' %}active{% endif %}" href="{% url 'masters_list' %}">Мастера</a>
+    <a class="tab {% if request.path|slice:0:14 == '/admin-panel/' and request.path|slice:14:19 == 'parts' %}active{% endif %}" href="{% url 'parts_list' %}">Запчасти</a>
+    <a class="tab {% if request.path|slice:0:14 == '/admin-panel/' and request.path|slice:14:21 == 'services' %}active{% endif %}" href="{% url 'services_list' %}">Услуги</a>
+    <a class="tab {% if request.path|slice:0:14 == '/admin-panel/' and request.path|slice:14:18 == 'statuses' %}active{% endif %}" href="{% url 'statuses_list' %}">Статусы</a>
+    <a class="tab {% if request.path|slice:0:14 == '/admin-panel/' and request.path|slice:14:16 == 'cars' %}active{% endif %}" href="{% url 'cars_list' %}">Машины</a>
+    <a class="tab {% if request.path|slice:0:14 == '/admin-panel/' and request.path|slice:14:17 == 'payments' %}active{% endif %}" href="{% url 'payments_list' %}">Оплаты</a>
+    <a class="tab {% if request.path == '/admin-panel/statistics/' %}active{% endif %}" href="{% url 'statistics' %}">Статистика</a>
+    <a class="tab {% if request.path == '/admin-panel/logs/' %}active{% endif %}" href="{% url 'logs' %}">Логи</a>
+  </div>
+</div>

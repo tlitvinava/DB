@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Оплаты{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Оплаты</h2>
+  <div style="margin-bottom:10px;">
+    <a class="btn" href="{% url 'payment_create' %}">Создать платёж</a>
+    <a class="btn secondary" href="{% url 'admin_panel' %}">Назад</a>
+  </div>
+
+  <table>
+    <thead><tr><th>Дата</th><th>Сумма</th><th>Метод</th><th>Действия</th></tr></thead>
+    <tbody>
+      {% for item in page %}
+        <tr>
+          <td>{{ item.date }}</td>
+          <td>{{ item.amount }}</td>
+          <td>{{ item.paymentmethod }}</td>
+          <td class="actions">
+            <a class="btn secondary" href="{% url 'payment_edit' item.pk %}">Редактировать</a>
+            <form action="{% url 'payment_delete' item.pk %}" method="post" style="display:inline;">
+              {% csrf_token %}
+              <button class="btn danger" type="submit">Удалить</button>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">Платежей нет</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

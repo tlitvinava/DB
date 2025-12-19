@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Привет, {{ request.user.name }}!</h1>
+    <form action="{% url 'login' %}" method="get">
+        <button type="submit">Выйти из аккаунта</button>
+    </form>
+</div>
+{% endblock %}

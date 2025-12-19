@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}Автосервис{% endblock %}</title>
+
+  <!-- Normalize -->
+
+  <!-- Основной стиль проекта -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <a href="{% url 'home' %}">Автосервис</a>
+    </div>
+    <nav class="main">
+      {% if user.is_authenticated %}
+        <span>Привет {{ request.user.name }} {{ request.user.surname }}</span>
+        <a href="{% url 'logout' %}">Выйти</a>
+      {% else %}
+        <a href="{% url 'login' %}">Войти</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  {# --- Админ --- #}
+  {% if user.is_authenticated and user.role and user.role.rolename == "admin" %}
+  <div class="tabs-container">
+    <div class="tabs">
+      <a class="tab {% if request.resolver_match.url_name == 'admin_panel' %}active{% endif %}" href="{% url 'admin_panel' %}">Панель</a>
+      <a class="tab {% if request.resolver_match.url_name == 'admin_orders' %}active{% endif %}" href="{% url 'admin_orders' %}">Заказы</a>
+      <a class="tab {% if request.resolver_match.url_name == 'masters_list' %}active{% endif %}" href="{% url 'masters_list' %}">Мастера</a>
+      <a class="tab {% if request.resolver_match.url_name == 'parts_list' %}active{% endif %}" href="{% url 'parts_list' %}">Запчасти</a>
+      <a class="tab {% if request.resolver_match.url_name == 'services_list' %}active{% endif %}" href="{% url 'services_list' %}">Услуги</a>
+      <a class="tab {% if request.resolver_match.url_name == 'statuses_list' %}active{% endif %}" href="{% url 'statuses_list' %}">Статусы</a>
+      <a class="tab {% if request.resolver_match.url_name == 'cars_list' %}active{% endif %}" href="{% url 'cars_list' %}">Машины</a>
+      <a class="tab {% if request.resolver_match.url_name == 'payments_list' %}active{% endif %}" href="{% url 'payments_list' %}">Оплаты</a>
+      <a class="tab {% if request.resolver_match.url_name == 'logs' %}active{% endif %}" href="{% url 'logs' %}">Логи</a>
+    </div>
+  </div>
+  {% endif %}
+
+  {# --- Клиент --- #}
+  {% if user.is_authenticated and user.role and user.role.rolename == "client" %}
+  <div class="tabs-container">
+    <div class="tabs">
+      <a class="tab {% if request.resolver_match.url_name == 'order_create' %}active{% endif %}" href="{% url 'order_create' %}">Создать заказ</a>
+      <a class="tab {% if request.resolver_match.url_name == 'services_list' %}active{% endif %}" href="{% url 'services_list' %}">Услуги</a>
+      <a class="tab {% if request.resolver_match.url_name == 'parts_list' %}active{% endif %}" href="{% url 'parts_list' %}">Запчасти</a>
+      <a class="tab {% if request.resolver_match.url_name == 'cars_list' %}active{% endif %}" href="{% url 'cars_list' %}">Машины</a>
+      <a class="tab {% if request.resolver_match.url_name == 'client' %}active{% endif %}" href="{% url 'client_orders' %}">Мои заказы</a>
+
+    </div>
+  </div>
+  {% endif %}
+
+  {# --- Мастер --- #}
+  {% if user.is_authenticated and user.role and user.role.rolename == "master" %}
+  <div class="tabs-container">
+    <div class="tabs">
+      <a class="tab {% if request.resolver_match.url_name == 'services_list' %}active{% endif %}" href="{% url 'services_list' %}">Услуги</a>
+      <a class="tab {% if request.resolver_match.url_name == 'parts_list' %}active{% endif %}" href="{% url 'parts_list' %}">Запчасти</a>
+      <a class="tab {% if request.resolver_match.url_name == 'cars_list' %}active{% endif %}" href="{% url 'cars_list' %}">Машины</a>
+      <a class="tab {% if request.resolver_match.url_name == 'master_orders' %}active{% endif %}" href="{% url 'master_orders' %}">Мои заказы</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="container">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="card message">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+
+  <footer>
+    © {{ now.year }} Автосервис
+  </footer>
+</body>
+</html>

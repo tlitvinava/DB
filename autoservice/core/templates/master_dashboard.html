@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Панель мастера{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Панель мастера</h2>
+  <p>Добро пожаловать, {{ request.user.get_full_name|default:request.user.name }}!</p>
+
+  <!-- Навигационная панель -->
+  <div style="margin-bottom:15px; display:flex; gap:10px;">
+    <a class="btn" href="{% url 'order_list' %}">Заказы</a>
+    <a class="btn secondary" href="{% url 'services_list' %}">Услуги</a>
+    <a class="btn secondary" href="{% url 'parts_list' %}">Запчасти</a>
+    <a class="btn secondary" href="{% url 'cars_list' %}">Машины</a>
+  </div>
+
+  <!-- Минимальный контент -->
+  <p>Здесь будет отображаться информация о заказах мастера и другие инструменты.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} платёж{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>{{ action }} платёж</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">{{ action }}</button>
+    <a class="btn secondary" href="{% url 'payments_list' %}">Отмена</a>
+  </form>
+</div>
+{% endblock %}

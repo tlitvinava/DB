@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Создать заказ{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Создать заказ</h1>
+
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div style="display:grid;gap:12px;max-width:400px;">
+      {{ form.non_field_errors }}
+      {{ form.car.label_tag }} {{ form.car }} {{ form.car.errors }}
+      {{ form.master.label_tag }} {{ form.master }} {{ form.master.errors }}
+      {{ form.part.label_tag }} {{ form.part }} {{ form.part.errors }}
+      {{ form.payment.label_tag }} {{ form.payment }} {{ form.payment.errors }}
+      {{ form.service.label_tag }} {{ form.service }} {{ form.service.errors }}
+      {{ form.notes.label_tag }} {{ form.notes }} {{ form.notes.errors }}
+    </div>
+    <br>
+    <button type="submit">Сохранить</button>
+  </form>
+</div>
+{% endblock %}

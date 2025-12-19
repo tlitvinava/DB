@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Машины{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Машины</h2>
+
+  <div style="margin-bottom:10px;">
+    <form method="get" action="" style="display:inline-block; margin-right:10px;">
+      <input type="text" name="q" placeholder="Поиск..." value="{{ query }}">
+      <button type="submit">Искать</button>
+    </form>
+
+    <a href="?sort=asc{% if query %}&q={{ query }}{% endif %}" style="margin-right:6px;"> ↑</a>
+    <a href="?sort=desc{% if query %}&q={{ query }}{% endif %}" style="margin-right:12px;"> ↓</a>
+
+    {% if user.is_authenticated and user.role and user.role.rolename == "admin" %}
+      <a class="btn" href="{% url 'car_create' %}">Создать машину</a>
+    {% endif %}
+    <a class="btn secondary" href="{% url 'admin_panel' %}">Назад</a>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Изображение</th>
+        <th>Название</th>
+        <th>Описание</th>
+        {% if user.is_authenticated and user.role and user.role.rolename == "admin" %}
+          <th>Действия</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in page %}
+        <tr>
+          <td>
+            {% if item.image %}
+              <img src="{{ item.image.url }}" alt="{{ item.name }}" width="120">
+            {% else %}
+              <span>Нет фото</span>
+            {% endif %}
+          </td>
+          <td>{{ item.name }}</td>
+          <td>{{ item.description }}</td>
+          {% if user.is_authenticated and user.role and user.role.rolename == "admin" %}
+            <td class="actions">
+              <a class="btn secondary" href="{% url 'car_edit' item.pk %}">Редактировать</a>
+              <form action="{% url 'car_delete' item.pk %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button class="btn danger" type="submit">Удалить</button>
+              </form>
+            </td>
+          {% endif %}
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="{% if user.is_authenticated and user.role and user.role.rolename == "admin" %}4{% else %}3{% endif %}">
+            Машин нет
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pagination" style="margin-top:12px;">
+    {% if page.has_previous %}
+      <a href="?page={{ page.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">← Назад</a>
+    {% endif %}
+    <span style="margin:0 8px;">Страница {{ page.number }} из {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}
+      <a href="?page={{ page.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Вперёд →</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

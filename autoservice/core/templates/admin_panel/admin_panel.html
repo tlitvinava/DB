@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Админ панель{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Админ панель</h2>
+  <p>Краткая сводка по системе</p>
+  <ul>
+    <li>Заказы всего: <strong>{{ stats.orders_count }}</strong></li>
+    <li>Мастеров: <strong>{{ stats.masters_count }}</strong></li>
+    <li>Запчастей: <strong>{{ stats.parts_count }}</strong></li>
+    <li>Услуг: <strong>{{ stats.services_count }}</strong></li>
+    <li>Машин: <strong>{{ stats.cars_count }}</strong></li>
+  </ul>
+</div>
+{% endblock %}
