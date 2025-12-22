@@ -217,3 +217,43 @@ footer {
   margin-top: 40px;
   font-size: 14px;
 }
+
+/* Базовая кнопка */
+.btn {
+  display: inline-block;
+  padding: 8px 14px;
+  background: var(--brand);
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: background .15s ease, transform .12s ease;
+}
+.btn:hover {
+  background: var(--brand-dark);
+  transform: translateY(-1px);
+}
+
+/* Вторичная кнопка */
+.btn.secondary {
+  background: #f1fdf6;
+  color: var(--accent);
+  border: 1px solid #e6f6ea;
+}
+.btn.secondary:hover {
+  background: #e6f6ea;
+  transform: translateY(-1px);
+}
+
+/* Опасная кнопка (удаление) */
+.btn.danger {
+  background: #f44336;
+  color: #fff;
+  border: 1px solid #d32f2f;
+}
+.btn.danger:hover {
+  background: #d32f2f;
+  transform: translateY(-1px);
+}

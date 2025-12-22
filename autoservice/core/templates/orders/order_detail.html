@@ -5,11 +5,11 @@
   <h2>Заказ №{{ order.id }}</h2>
 
   <p>Клиент: {{ order.client.name }} {{ order.client.surname }}</p>
-  <p>Машина: {{ order.car.brand }} {{ order.car.model }}</p>
+  <p>Машина: {{ order.car.name }}</p>
   <p>Мастер: {{ order.master.name }} {{ order.master.surname }}</p>
-  <p>Услуга: {{ order.service.servicename }}</p>
-  <p>Запчасть: {{ order.part.partname }}</p>
-  <p>Оплата: {{ order.payment.paymenttype }} — {{ order.payment.amount }} ₽</p>
+  <p>Услуга: {{ order.service.name }}</p>
+  <p>Запчасть: {{ order.part.name }}</p>
+  <p>Оплата: {{ order.payment.paymentmethod }}</p>
   <p>Статус: {{ order.status.statusname }}</p>
 
   

@@ -9,12 +9,10 @@
   </div>
 
   <table>
-    <thead><tr><th>Дата</th><th>Сумма</th><th>Метод</th><th>Действия</th></tr></thead>
+    <thead><tr><th>Метод</th><th>Действия</th></tr></thead>
     <tbody>
       {% for item in page %}
         <tr>
-          <td>{{ item.date }}</td>
-          <td>{{ item.amount }}</td>
           <td>{{ item.paymentmethod }}</td>
           <td class="actions">
             <a class="btn secondary" href="{% url 'payment_edit' item.pk %}">Редактировать</a>

@@ -22,7 +22,9 @@
           <td>{{ o.client.name }} {{ o.client.surname }}</td>
           <td>{{ o.master.name }} {{ o.master.surname }}</td>
           <td>{{ o.status.statusname }}</td>
-          <td><a href="{% url 'change_order_status' o.id %}">Изменить статус</a></td>
+          <td>
+            <a class="btn secondary" href="{% url 'change_order_status' o.id %}">Изменить статус</a>
+          </td>
         </tr>
       {% empty %}
         <tr><td colspan="6">Нет заказов</td></tr>

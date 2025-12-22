@@ -254,17 +254,27 @@ class Service(models.Model):
 # ---------------------------
 # Payment
 # ---------------------------
+# class Payment(models.Model):
+#     date = models.DateTimeField(blank=True, null=True)
+#     amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+#     paymentmethod = models.CharField(max_length=50, blank=True, null=True)
+
+#     def __str__(self):
+#         return f"{self.paymentmethod} ({self.amount})"
+
+#     class Meta:
+#         db_table = 'payment'
+#         # managed = False
+
 class Payment(models.Model):
-    date = models.DateTimeField(blank=True, null=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     paymentmethod = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.paymentmethod} ({self.amount})"
+        return self.paymentmethod or "—"
 
     class Meta:
         db_table = 'payment'
-        # managed = False
+        managed = True
 
 
 # ---------------------------
