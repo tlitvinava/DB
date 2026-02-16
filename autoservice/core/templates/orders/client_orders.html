@@ -22,7 +22,7 @@
           <td>{% if order.car %}{{ order.car.name }}{% else %}—{% endif %}</td>
           <td>{{ order.service.name }}</td>
           <td>{{ order.status.statusname }}</td>
-          <td><a href="{% url 'order_detail' order.id %}">Подробнее</a></td>
+          <td><a class="btn secondary" href="{% url 'order_detail' order.id %}">Подробнее</a></td>
         </tr>
       {% empty %}
         <tr><td colspan="6">У вас пока нет заказов</td></tr>

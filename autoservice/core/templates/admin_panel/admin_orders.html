@@ -24,6 +24,7 @@
           <td>{{ o.status.statusname }}</td>
           <td>
             <a class="btn secondary" href="{% url 'change_order_status' o.id %}">Изменить статус</a>
+            <a class="btn danger" href="{% url 'order_delete' o.id %}" onclick="return confirm('Удалить заказ {{ o.id }}?');">Удалить</a>
           </td>
         </tr>
       {% empty %}

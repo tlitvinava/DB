@@ -106,7 +106,7 @@ def order_update(request, pk):
 def order_delete(request, pk):
     order = get_object_or_404(Order, pk=pk)
     order.delete()
-    return redirect("order_list")
+    return redirect("admin_orders")
 
 
 from django.shortcuts import render
@@ -247,10 +247,6 @@ def master_delete(request, pk):
         return redirect('masters_list')
     return render(request, 'admin_panel/confirm_delete.html', {'object': master, 'type': 'Мастер'})
 
-
-# -------------------------
-# Parts CRUD
-# -------------------------
 # # Parts
 # @login_required
 # def parts_list(request):
@@ -320,9 +316,6 @@ def part_delete(request, pk):
     return render(request, 'admin_panel/confirm_delete.html', {'object': part, 'type': 'Запчасть'})
 
 
-# -------------------------
-# Services CRUD
-# -------------------------
 # # Services
 # @login_required
 # def services_list(request):
@@ -660,7 +653,7 @@ def statistics(request):
 @admin_required
 def logs(request):
     qs = Actionlog.objects.select_related("userid").order_by('-action_timestamp')
-    page = paginate_queryset(request, qs, per_page=50)
+    page = paginate_queryset(request, qs, per_page=10)
     return render(request, 'admin_panel/logs.html', {'page': page})
 
 
@@ -782,61 +775,85 @@ def client_orders(request):
 
 # 
 # from django.shortcuts import render, redirect, get_object_or_404
-# from django.db import connection, transaction, IntegrityError
 # from django.utils import timezone
 # from django.contrib import messages
-# from django.contrib.auth.decorators import login_required, user_passes_test
+# from django.db.models import Count
 # from django.forms import ModelForm
 # from django.core.paginator import Paginator
+# from django.contrib.auth.decorators import login_required, user_passes_test
 # from django.http import Http404, HttpResponseForbidden
+# from django.db import connection, transaction, IntegrityError
 # from django.core.files.storage import default_storage
 # from django.core.files.base import ContentFile
 # from django.contrib.auth import get_user_model
 # import json
 
+# from .decorators import admin_required
+# from .models import Master, Part, Service, Status, Payment, Car, Order, Actionlog, User
 # from core.utils import is_client, is_master, is_admin
 # from core.forms import OrderForm
 
 # User = get_user_model()
 
-# from django.forms import ModelForm
-# from .models import Master, Part, Service, Status, Payment, Car
+# def ensure_indexes():
+#     index_statements = [
+#         'CREATE INDEX IF NOT EXISTS idx_order_creationdate ON "Order" (creationdate);',
+#         'CREATE INDEX IF NOT EXISTS idx_order_clientid ON "Order" (clientid);',
+#         'CREATE INDEX IF NOT EXISTS idx_order_masterid ON "Order" (masterid);',
+#         'CREATE INDEX IF NOT EXISTS idx_order_carid ON "Order" (carid);',
+#         'CREATE INDEX IF NOT EXISTS idx_order_partid ON "Order" (partid);',
+#         'CREATE INDEX IF NOT EXISTS idx_order_serviceid ON "Order" (serviceid);',
+#         'CREATE INDEX IF NOT EXISTS idx_order_status ON "Order" (status);',
+#         'CREATE INDEX IF NOT EXISTS idx_part_name ON part (name);',
+#         'CREATE INDEX IF NOT EXISTS idx_service_name ON service (name);',
+#         'CREATE INDEX IF NOT EXISTS idx_car_name ON car (name);',
+#     ]
+#     try:
+#         with connection.cursor() as cursor:
+#             for stmt in index_statements:
+#                 try:
+#                     cursor.execute(stmt)
+#                 except Exception:
+#                     pass
+#     except Exception:
+#         pass
+
+# ensure_indexes()
 
 # class MasterForm(ModelForm):
 #     class Meta:
 #         model = Master
 #         fields = ['name', 'surname', 'email']
 
-
 # class PartForm(ModelForm):
 #     class Meta:
 #         model = Part
 #         fields = ['name', 'description', 'price', 'image']
-
 
 # class ServiceForm(ModelForm):
 #     class Meta:
 #         model = Service
 #         fields = ['name', 'description', 'price']
 
-
 # class StatusForm(ModelForm):
 #     class Meta:
 #         model = Status
 #         fields = ['statusname']
 
-
 # class PaymentForm(ModelForm):
 #     class Meta:
 #         model = Payment
-#         fields = ['date', 'amount', 'paymentmethod']
-
+#         fields = ['paymentmethod']
 
 # class CarForm(ModelForm):
 #     class Meta:
 #         model = Car
 #         fields = ['name', 'description', 'image']
 
+# def paginate_queryset(request, queryset, per_page=5):
+#     paginator = Paginator(queryset, per_page)
+#     page_number = request.GET.get('page')
+#     return paginator.get_page(page_number)
 
 # def dictfetchall(cursor):
 #     cols = [c[0] for c in cursor.description]
@@ -854,6 +871,20 @@ def client_orders(request):
 #         return None
 #     path = default_storage.save(f.name, ContentFile(f.read()))
 #     return path
+
+# def log_action(user, table_name, operation, row_id=None, row_data=None):
+#     try:
+#         Actionlog.objects.create(
+#             userid=user if getattr(user, 'is_authenticated', False) else None,
+#             action=f"{operation} on {table_name}",
+#             action_timestamp=timezone.now(),
+#             table_name=table_name,
+#             operation=operation,
+#             row_id=row_id,
+#             row_data=row_data or {}
+#         )
+#     except Exception:
+#         pass
 
 # def log_action_sql(user, table_name, operation, row_id=None, row_data=None):
 #     try:
@@ -874,6 +905,8 @@ def client_orders(request):
 #     except Exception:
 #         pass
 
+# def _readonly_for_user(user):
+#     return getattr(user, 'role', None) and user.role.rolename in ['client', 'master']
 
 # @login_required
 # @user_passes_test(is_client)
@@ -889,7 +922,6 @@ def client_orders(request):
 # @user_passes_test(is_admin)
 # def admin_dashboard(request):
 #     return render(request, "admin_dashboard.html")
-
 
 # @login_required
 # def order_list(request):
@@ -910,7 +942,6 @@ def client_orders(request):
 #         orders = dictfetchall(cursor)
 #     return render(request, "orders/order_list.html", {"orders": orders})
 
-
 # @login_required
 # def order_detail(request, pk):
 #     with connection.cursor() as cursor:
@@ -919,20 +950,21 @@ def client_orders(request):
 #                    o.carid, o.masterid, m.name AS master_name, m.surname AS master_surname,
 #                    o.partid, p.name AS part_name, p.price AS part_price,
 #                    o.serviceid, s.name AS service_name, s.price AS service_price,
-#                    o.status, st.statusname, o.notes, o.total_cost
+#                    o.status, st.statusname, o.notes, o.total_cost,
+#                    pay.paymentmethod AS payment_method
 #             FROM "Order" o
 #             LEFT JOIN "User" ON o.clientid = "User".id
 #             LEFT JOIN master m ON o.masterid = m.id
 #             LEFT JOIN part p ON o.partid = p.id
 #             LEFT JOIN service s ON o.serviceid = s.id
 #             LEFT JOIN status st ON o.status = st.id
+#             LEFT JOIN payment pay ON o.paymentid = pay.id
 #             WHERE o.id = %s
 #         """, [pk])
 #         order = dictfetchone(cursor)
 #     if not order:
 #         raise Http404("Заказ не найден")
 #     return render(request, "orders/order_detail.html", {"order": order})
-
 
 # @login_required
 # def order_create(request):
@@ -958,7 +990,6 @@ def client_orders(request):
 #                         part_price = prices.get("part_price") or 0
 #                         service_price = prices.get("service_price") or 0
 #                         total_cost = float(part_price) + float(service_price)
-
 #                         cursor.execute("""
 #                             INSERT INTO "Order"
 #                             (creationdate, clientid, carid, masterid, partid, serviceid, status, notes, total_cost)
@@ -969,7 +1000,6 @@ def client_orders(request):
 #                             partid or None, serviceid, 2, notes, total_cost
 #                         ])
 #                         new_id = cursor.fetchone()[0]
-
 #                         row_data = {
 #                             "id": new_id, "clientid": request.user.id, "carid": carid,
 #                             "masterid": masterid, "partid": partid, "serviceid": serviceid,
@@ -1000,7 +1030,6 @@ def client_orders(request):
 #         form = OrderForm()
 #     return render(request, "orders/order_form.html", {"form": form})
 
-
 # @login_required
 # def order_update(request, pk):
 #     with connection.cursor() as cursor:
@@ -1008,7 +1037,6 @@ def client_orders(request):
 #         order = dictfetchone(cursor)
 #     if not order:
 #         raise Http404("Заказ не найден")
-
 #     if request.method == "POST":
 #         new_status = request.POST.get("status") or order["status"]
 #         new_notes = request.POST.get("notes", order.get("notes", ""))
@@ -1036,9 +1064,7 @@ def client_orders(request):
 #             return redirect("order_detail", pk=pk)
 #         except IntegrityError as e:
 #             messages.error(request, f"Ошибка при обновлении: {e}")
-
 #     return render(request, "orders/order_form.html", {"order": order})
-
 
 # @login_required
 # def order_delete(request, pk):
@@ -1046,7 +1072,6 @@ def client_orders(request):
 #         cursor.execute('SELECT id FROM "Order" WHERE id = %s', [pk])
 #         if cursor.fetchone() is None:
 #             raise Http404("Заказ не найден")
-
 #     if request.method == "POST":
 #         try:
 #             with transaction.atomic():
@@ -1072,13 +1097,11 @@ def client_orders(request):
 #             messages.error(request, f"Ошибка при удалении: {e}")
 #     return render(request, "orders/confirm_delete.html", {"object": {"id": pk}})
 
-
 # @login_required
 # def home(request):
 #     return render(request, 'home.html', {
 #         'username': getattr(request.user, 'name', request.user.username)
 #     })
-
 
 # @login_required
 # def admin_panel(request):
@@ -1102,7 +1125,6 @@ def client_orders(request):
 #     }
 #     return render(request, 'admin_panel/admin_panel.html', {'stats': stats})
 
-
 # @login_required
 # def masters_list(request):
 #     with connection.cursor() as cursor:
@@ -1112,9 +1134,8 @@ def client_orders(request):
 #             ORDER BY surname, name
 #         """)
 #         rows = dictfetchall(cursor)
-#     page = paginate_queryset(rows, per_page=5, request=request)
+#     page = paginate_queryset(request, rows, per_page=5)
 #     return render(request, 'admin_panel/masters_list.html', {'page': page})
-
 
 # @login_required
 # def master_create(request):
@@ -1139,7 +1160,6 @@ def client_orders(request):
 #     else:
 #         form = MasterForm()
 #     return render(request, 'admin_panel/master_form.html', {'form': form, 'action': 'Создать'})
-
 
 # @login_required
 # def master_edit(request, pk):
@@ -1169,7 +1189,6 @@ def client_orders(request):
 #         form = MasterForm(initial=master)
 #     return render(request, 'admin_panel/master_form.html', {'form': form, 'action': 'Редактировать'})
 
-
 # @login_required
 # def master_delete(request, pk):
 #     with connection.cursor() as cursor:
@@ -1189,7 +1208,6 @@ def client_orders(request):
 #             messages.error(request, f"Ошибка при удалении мастера: {e}")
 #     return render(request, 'admin_panel/confirm_delete.html', {'object': master, 'type': 'Мастер'})
 
-
 # @login_required
 # def parts_list(request):
 #     query = request.GET.get("q")
@@ -1206,10 +1224,8 @@ def client_orders(request):
 #     with connection.cursor() as cursor:
 #         cursor.execute(sql, params)
 #         rows = dictfetchall(cursor)
-#     page = paginate_queryset(rows, per_page=5, request=request)
-#     readonly = getattr(request.user, 'role', None) and request.user.role.rolename in ['client', 'master']
+#     page = paginate_queryset(request, rows, per_page=5)
 #     return render(request, "admin_panel/parts_list.html", {"page": page, "query": query, "sort": sort})
-
 
 # @login_required
 # def part_create(request):
@@ -1237,7 +1253,6 @@ def client_orders(request):
 #     else:
 #         form = PartForm()
 #     return render(request, 'admin_panel/part_form.html', {'form': form, 'action': 'Создать'})
-
 
 # @login_required
 # def part_edit(request, pk):
@@ -1270,7 +1285,6 @@ def client_orders(request):
 #         form = PartForm(initial=part)
 #     return render(request, 'admin_panel/part_form.html', {'form': form, 'action': 'Редактировать'})
 
-
 # @login_required
 # def part_delete(request, pk):
 #     with connection.cursor() as cursor:
@@ -1290,7 +1304,6 @@ def client_orders(request):
 #             messages.error(request, f"Ошибка при удалении запчасти: {e}")
 #     return render(request, 'admin_panel/confirm_delete.html', {'object': part, 'type': 'Запчасть'})
 
-
 # @login_required
 # def services_list(request):
 #     query = request.GET.get("q")
@@ -1307,10 +1320,14 @@ def client_orders(request):
 #     with connection.cursor() as cursor:
 #         cursor.execute(sql, params)
 #         rows = dictfetchall(cursor)
-#     page = paginate_queryset(rows, per_page=5, request=request)
-#     readonly = getattr(request.user, 'role', None) and request.user.role.rolename in ['client', 'master']
+#     for row in rows:
+#         if row.get("id") is not None:
+#             try:
+#                 row["id"] = int(row["id"])
+#             except (ValueError, TypeError):
+#                 row["id"] = None
+#     page = paginate_queryset(request, rows, per_page=5)
 #     return render(request, "admin_panel/services_list.html", {"page": page, "query": query, "sort": sort})
-
 
 # @login_required
 # def service_create(request):
@@ -1335,7 +1352,6 @@ def client_orders(request):
 #     else:
 #         form = ServiceForm()
 #     return render(request, 'admin_panel/service_form.html', {'form': form, 'action': 'Создать'})
-
 
 # @login_required
 # def service_edit(request, pk):
@@ -1365,7 +1381,6 @@ def client_orders(request):
 #         form = ServiceForm(initial=service)
 #     return render(request, 'admin_panel/service_form.html', {'form': form, 'action': 'Редактировать'})
 
-
 # @login_required
 # def service_delete(request, pk):
 #     with connection.cursor() as cursor:
@@ -1385,15 +1400,13 @@ def client_orders(request):
 #             messages.error(request, f"Ошибка при удалении услуги: {e}")
 #     return render(request, 'admin_panel/confirm_delete.html', {'object': service, 'type': 'Услуга'})
 
-
 # @login_required
 # def statuses_list(request):
 #     with connection.cursor() as cursor:
 #         cursor.execute("SELECT id, statusname FROM status ORDER BY statusname")
 #         rows = dictfetchall(cursor)
-#     page = paginate_queryset(rows, per_page=5, request=request)
+#     page = paginate_queryset(request, rows, per_page=5)
 #     return render(request, 'admin_panel/statuses_list.html', {'page': page})
-
 
 # @login_required
 # def status_create(request):
@@ -1419,7 +1432,6 @@ def client_orders(request):
 #         form = StatusForm()
 #     return render(request, 'admin_panel/status_form.html', {'form': form, 'action': 'Создать'})
 
-
 # @login_required
 # def status_edit(request, pk):
 #     with connection.cursor() as cursor:
@@ -1444,7 +1456,6 @@ def client_orders(request):
 #         form = StatusForm(initial=status)
 #     return render(request, 'admin_panel/status_form.html', {'form': form, 'action': 'Редактировать'})
 
-
 # @login_required
 # def status_delete(request, pk):
 #     with connection.cursor() as cursor:
@@ -1464,89 +1475,49 @@ def client_orders(request):
 #             messages.error(request, f"Ошибка при удалении статуса: {e}")
 #     return render(request, 'admin_panel/confirm_delete.html', {'object': status, 'type': 'Статус'})
 
-
 # @login_required
 # def payments_list(request):
-#     with connection.cursor() as cursor:
-#         cursor.execute("SELECT id, date, amount, paymentmethod FROM payment ORDER BY date DESC")
-#         rows = dictfetchall(cursor)
-#     page = paginate_queryset(rows, per_page=5, request=request)
+#     qs = Payment.objects.all().order_by('paymentmethod')
+#     page = paginate_queryset(request, qs, per_page=5)
 #     return render(request, 'admin_panel/payments_list.html', {'page': page})
-
 
 # @login_required
 # def payment_create(request):
 #     if request.method == 'POST':
 #         form = PaymentForm(request.POST)
 #         if form.is_valid():
-#             data = form.cleaned_data
-#             try:
-#                 with transaction.atomic():
-#                     with connection.cursor() as cursor:
-#                         cursor.execute("""
-#                             INSERT INTO payment (date, amount, paymentmethod)
-#                             VALUES (%s, %s, %s)
-#                             RETURNING id
-#                         """, [data['date'], data['amount'], data['paymentmethod']])
-#                         new_id = cursor.fetchone()[0]
-#                         log_action_sql(request.user, 'payment', 'create', row_id=new_id, row_data={'amount': str(data['amount'])})
-#                 messages.success(request, 'Платёж создан')
-#                 return redirect('payments_list')
-#             except IntegrityError as e:
-#                 messages.error(request, f"Ошибка при создании платежа: {e}")
+#             payment = form.save()
+#             log_action(request.user, 'payment', 'create', row_id=payment.pk, row_data={'paymentmethod': payment.paymentmethod})
+#             messages.success(request, 'Платёж создан')
+#             return redirect('payments_list')
 #     else:
 #         form = PaymentForm()
 #     return render(request, 'admin_panel/payment_form.html', {'form': form, 'action': 'Создать'})
 
-
 # @login_required
 # def payment_edit(request, pk):
-#     with connection.cursor() as cursor:
-#         cursor.execute("SELECT id, date, amount, paymentmethod FROM payment WHERE id = %s", [pk])
-#         payment = dictfetchone(cursor)
-#     if not payment:
-#         raise Http404("Платёж не найден")
+#     payment = get_object_or_404(Payment, pk=pk)
 #     if request.method == 'POST':
-#         form = PaymentForm(request.POST)
+#         form = PaymentForm(request.POST, instance=payment)
 #         if form.is_valid():
-#             data = form.cleaned_data
-#             try:
-#                 with transaction.atomic():
-#                     with connection.cursor() as cursor:
-#                         cursor.execute("""
-#                             UPDATE payment
-#                             SET date = %s, amount = %s, paymentmethod = %s
-#                             WHERE id = %s
-#                         """, [data['date'], data['amount'], data['paymentmethod'], pk])
-#                         log_action_sql(request.user, 'payment', 'update', row_id=pk, row_data={'amount': str(data['amount'])})
-#                 messages.success(request, 'Платёж обновлён')
-#                 return redirect('payments_list')
-#             except IntegrityError as e:
-#                 messages.error(request, f"Ошибка при обновлении платежа: {e}")
+#             payment = form.save()
+#             log_action(request.user, 'payment', 'update', row_id=payment.pk, row_data={'paymentmethod': payment.paymentmethod})
+#             messages.success(request, 'Платёж обновлён')
+#             return redirect('payments_list')
 #     else:
-#         form = PaymentForm(initial=payment)
+#         form = PaymentForm(instance=payment)
 #     return render(request, 'admin_panel/payment_form.html', {'form': form, 'action': 'Редактировать'})
-
 
 # @login_required
 # def payment_delete(request, pk):
-#     with connection.cursor() as cursor:
-#         cursor.execute("SELECT id, amount FROM payment WHERE id = %s", [pk])
-#         payment = dictfetchone(cursor)
-#     if not payment:
-#         raise Http404("Платёж не найден")
+#     payment = get_object_or_404(Payment, pk=pk)
 #     if request.method == 'POST':
-#         try:
-#             with transaction.atomic():
-#                 with connection.cursor() as cursor:
-#                     cursor.execute("DELETE FROM payment WHERE id = %s", [pk])
-#                     log_action_sql(request.user, 'payment', 'delete', row_data={'amount': str(payment['amount'])})
-#             messages.success(request, 'Платёж удалён')
-#             return redirect('payments_list')
-#         except IntegrityError as e:
-#             messages.error(request, f"Ошибка при удалении платежа: {e}")
+#         row_data = {'paymentmethod': payment.paymentmethod}
+#         payment.delete()
+#         log_action(request.user, 'payment', 'delete', row_data=row_data)
+#         messages.success(request, 'Платёж удалён')
+#         return redirect('payments_list')
 #     return render(request, 'admin_panel/confirm_delete.html', {'object': payment, 'type': 'Платёж'})
-
 
 # @login_required
 # def cars_list(request):
@@ -1564,10 +1535,8 @@ def client_orders(request):
 #     with connection.cursor() as cursor:
 #         cursor.execute(sql, params)
 #         rows = dictfetchall(cursor)
-#     page = paginate_queryset(rows, per_page=5, request=request)
-#     readonly = getattr(request.user, 'role', None) and request.user.role.rolename in ['client', 'master']
+#     page = paginate_queryset(request, rows, per_page=5)
 #     return render(request, "admin_panel/cars_list.html", {"page": page, "query": query, "sort": sort})
-
 
 # @login_required
 # def car_create(request):
@@ -1595,7 +1564,6 @@ def client_orders(request):
 #     else:
 #         form = CarForm()
 #     return render(request, 'admin_panel/car_form.html', {'form': form, 'action': 'Создать'})
-
 
 # @login_required
 # def car_edit(request, pk):
@@ -1628,7 +1596,6 @@ def client_orders(request):
 #         form = CarForm(initial=car)
 #     return render(request, 'admin_panel/car_form.html', {'form': form, 'action': 'Редактировать'})
 
-
 # @login_required
 # def car_delete(request, pk):
 #     with connection.cursor() as cursor:
@@ -1648,30 +1615,22 @@ def client_orders(request):
 #             messages.error(request, f"Ошибка при удалении машины: {e}")
 #     return render(request, 'admin_panel/confirm_delete.html', {'object': car, 'type': 'Машина'})
 
-
 # @login_required
 # def statistics(request):
-#     with connection.cursor() as cursor:
-#         cursor.execute('SELECT COUNT(*) FROM "Order"')
-#         orders_count = cursor.fetchone()[0]
-#         cursor.execute("""
-#             SELECT st.statusname, COUNT(o.id) AS count
-#             FROM "Order" o
-#             LEFT JOIN status st ON o.status = st.id
-#             GROUP BY st.statusname
-#             ORDER BY count DESC
-#         """)
-#         orders_by_status = dictfetchall(cursor)
-#         cursor.execute("""
-#             SELECT o.masterid AS master__id, u.name AS master__name, u.surname AS master__surname, COUNT(o.id) AS count
-#             FROM "Order" o
-#             LEFT JOIN "User" u ON o.masterid = "User".id
-#             WHERE "User".role_id = 2
-#             GROUP BY o.masterid, u.name, u.surname
-#             ORDER BY count DESC
-#             LIMIT 10
-#         """)
-#         top_masters = dictfetchall(cursor)
+#     orders_count = Order.objects.count()
+#     orders_by_status = (
+#         Order.objects
+#         .values('status__statusname')
+#         .annotate(count=Count('id'))
+#         .order_by('-count')
+#     )
+#     top_masters = (
+#         Order.objects
+#         .filter(master__role_id=2)
+#         .values('master__id', 'master__name', 'master__surname')
+#         .annotate(count=Count('id'))
+#         .order_by('-count')[:10]
+#     )
 #     context = {
 #         'orders_count': orders_count,
 #         'orders_by_status': orders_by_status,
@@ -1679,141 +1638,76 @@ def client_orders(request):
 #     }
 #     return render(request, 'admin_panel/statistics.html', context)
 
-
 # @login_required
 # def logs(request):
-#     with connection.cursor() as cursor:
-#         cursor.execute("""
-#             SELECT a.id, a.action, a.action_timestamp, a.table_name, a.operation, a.row_id, "User".name AS user_name
-#             FROM actionlog a
-#             LEFT JOIN "User" ON a.userid = "User".id
-#             ORDER BY a.action_timestamp DESC
-#         """)
-#         rows = dictfetchall(cursor)
-#     page = paginate_queryset(rows, per_page=50, request=request)
+#     qs = Actionlog.objects.select_related("userid").order_by('-action_timestamp')
+#     page = paginate_queryset(request, qs, per_page=50)
 #     return render(request, 'admin_panel/logs.html', {'page': page})
-
 
 # @login_required
 # @user_passes_test(is_client)
-# def client_dashboard(request):
-#     with connection.cursor() as cursor:
-#         cursor.execute("""
-#             SELECT o.id, o.creationdate, o.carid, o.status, st.statusname, o.total_cost
-#             FROM "Order" o
-#             LEFT JOIN status st ON o.status = st.id
-#             WHERE o.clientid = %s
-#             ORDER BY o.creationdate DESC
-#         """, [request.user.id])
-#         orders = dictfetchall(cursor)
+# def client_dashboard_orders(request):
+#     orders = Order.objects.filter(clientid=request.user).select_related('car', 'status')
 #     return render(request, "client_dashboard.html", {"orders": orders})
-
 
 # @login_required
 # def master_orders(request):
 #     user = request.user
 #     if getattr(user, 'role_id', None) != 2:
 #         return HttpResponseForbidden("Доступ разрешён только мастерам.")
-#     with connection.cursor() as cursor:
-#         cursor.execute("""
-#             SELECT o.id, o.creationdate, o.carid, o.clientid, st.statusname, s.name AS service_name, p.name AS part_name
-#             FROM "Order" o
-#             LEFT JOIN status st ON o.status = st.id
-#             LEFT JOIN service s ON o.serviceid = s.id
-#             LEFT JOIN part p ON o.partid = p.id
-#             WHERE o.masterid = %s
-#             ORDER BY o.creationdate DESC
-#         """, [user.id])
-#         orders_qs = dictfetchall(cursor)
+#     orders_qs = (
+#         Order.objects
+#         .select_related('car', 'client', 'status', 'service', 'part')
+#         .filter(master_id=user.id)
+#         .order_by('-creationdate')
+#     )
 #     paginator = Paginator(orders_qs, 10)
-#     page_number = request.GET.get('page')
-#     page = paginator.get_page(page_number)
-#     return render(request, 'master/orders_list.html', {'orders': page})
-
+#     page = request.GET.get('page')
+#     orders = paginator.get_page(page)
+#     return render(request, 'master/orders_list.html', {'orders': orders})
 
 # @login_required
 # def admin_orders(request):
 #     user = request.user
 #     if getattr(user, 'role_id', None) != 1:
 #         return HttpResponseForbidden("Доступ разрешён только администратору.")
-#     with connection.cursor() as cursor:
-#         cursor.execute("""
-#             SELECT o.id, o.creationdate, o.clientid, "User".name AS client_name, o.carid, o.status, st.statusname,
-#                    o.serviceid, s.name AS service_name, o.partid, p.name AS part_name, o.masterid
-#             FROM "Order" o
-#             LEFT JOIN "User" ON o.clientid = "User".id
-#             LEFT JOIN status st ON o.status = st.id
-#             LEFT JOIN service s ON o.serviceid = s.id
-#             LEFT JOIN part p ON o.partid = p.id
-#             LEFT JOIN "User" m ON o.masterid = m.id
-#             ORDER BY o.creationdate DESC
-#         """)
-#         orders = dictfetchall(cursor)
+#     orders = Order.objects.select_related(
+#         'client', 'car', 'status', 'service', 'part', 'master'
+#     ).order_by('-creationdate')
 #     return render(request, 'admin_panel/admin_orders.html', {'orders': orders})
-
 
 # @login_required
 # def change_order_status(request, order_id):
 #     user = request.user
 #     if getattr(user, 'role_id', None) != 1:
 #         return HttpResponseForbidden("Доступ разрешён только администратору.")
-#     with connection.cursor() as cursor:
-#         cursor.execute('SELECT id, status FROM "Order" WHERE id = %s', [order_id])
-#         order = dictfetchone(cursor)
-#     if not order:
-#         raise Http404("Заказ не найден")
+#     order = get_object_or_404(Order, id=order_id)
 #     if request.method == "POST":
 #         new_status_id = request.POST.get("status_id")
 #         if new_status_id:
-#             try:
-#                 with transaction.atomic():
-#                     with connection.cursor() as cursor:
-#                         cursor.execute('UPDATE "Order" SET status = %s WHERE id = %s', [new_status_id, order_id])
-#                         log_action_sql(request.user, 'Order', 'update', row_id=order_id, row_data={'status': new_status_id})
-#                 return redirect('admin_orders')
-#             except IntegrityError as e:
-#                 messages.error(request, f"Ошибка при смене статуса: {e}")
-#     with connection.cursor() as cursor:
-#         cursor.execute("SELECT id, statusname FROM status")
-#         statuses = dictfetchall(cursor)
+#             order.status_id = new_status_id
+#             order.save()
+#             return redirect('admin_orders')
+#     statuses = Status.objects.all()
 #     return render(request, 'admin_panel/change_status.html', {'order': order, 'statuses': statuses})
 
-
 # @login_required
-# def masters_list(request):
-#     with connection.cursor() as cursor:
-#         cursor.execute('SELECT id, name, surname FROM "User" WHERE role_id = 2 ORDER BY surname, name')
-#         masters_qs = dictfetchall(cursor)
+# def masters_list_simple(request):
+#     masters_qs = User.objects.filter(role_id=2).order_by('surname', 'name')
 #     paginator = Paginator(masters_qs, 10)
 #     page_number = request.GET.get('page')
 #     page = paginator.get_page(page_number)
 #     return render(request, "admin_panel/masters_list.html", {"page": page})
-
 
 # @login_required
 # def client_orders(request):
 #     user = request.user
 #     if getattr(user, 'role_id', None) != 3:
 #         return HttpResponseForbidden("Доступ разрешён только клиентам.")
-#     with connection.cursor() as cursor:
-#         cursor.execute("""
-#             SELECT o.id, o.creationdate, o.carid, st.statusname, s.name AS service_name, p.name AS part_name, o.total_cost
-#             FROM "Order" o
-#             LEFT JOIN status st ON o.status = st.id
-#             LEFT JOIN service s ON o.serviceid = s.id
-#             LEFT JOIN part p ON o.partid = p.id
-#             WHERE o.clientid = %s
-#             ORDER BY o.creationdate DESC
-#         """, [user.id])
-#         orders_qs = dictfetchall(cursor)
+#     orders_qs = (
+#         Order.objects
+#         .select_related('car', 'status', 'service', 'part', 'master')
+#         .filter(client_id=user.id)
+#         .order_by('-creationdate')
+#     )
 #     return render(request, 'client/orders_list.html', {'orders': orders_qs})
-
-
-# def paginate_queryset(queryset, per_page=5, request=None):
-#     if isinstance(queryset, list):
-#         paginator = Paginator(queryset, per_page)
-#         page_number = request.GET.get('page') if request is not None else 1
-#         return paginator.get_page(page_number)
-#     paginator = Paginator(queryset, per_page)
-#     page_number = request.GET.get('page') if request is not None else 1
-#     return paginator.get_page(page_number)
