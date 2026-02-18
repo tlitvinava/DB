@@ -15,23 +15,27 @@ class ClientSerializer(serializers.ModelSerializer):
 class CarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Car
-        fields = ['id', 'model', 'number']
+        fields = ['id', 'name', 'description']
 
 class OrderSerializer(serializers.ModelSerializer):
-    # если нужно отдавать вложенные сущности — раскомментируй
-    # client = ClientSerializer(source='clientid', read_only=True)
-    # car = CarSerializer(source='carid', read_only=True)
-    # status_obj = StatusSerializer(source='status', read_only=True)
+    client_info = ClientSerializer(source='client', read_only=True)
+    car_info = CarSerializer(source='car', read_only=True)
+    status_info = StatusSerializer(source='status', read_only=True)
 
     class Meta:
         model = Order
         fields = [
             'id',
-            'clientid',
-            'carid',
+            'client',
+            'car',
+            'master',
+            'part',
+            'service',
+            'payment',
             'status',
             'creationdate',
-            'completeddate',
-            'description',
-            # 'client', 'car', 'status_obj'
+            'notes',
+            'client_info',
+            'car_info',
+            'status_info'
         ]

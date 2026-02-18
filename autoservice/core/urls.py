@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 from .api import OrderViewSet, StatusViewSet
+from .auth_views import JWTLoginView, JWTLogoutView, CheckBlockStatusView, UnblockUserView
 from core.views import master_orders
 from core.views import home
 from core.views import admin_orders
@@ -77,8 +78,14 @@ urlpatterns = [
     # API (под префиксом api/)
     path('api/', include(router.urls)),
     
+    # JWT Authentication endpoints
+    path('api/auth/login/', JWTLoginView.as_view(), name='jwt_login'),
+    path('api/auth/logout/', JWTLogoutView.as_view(), name='jwt_logout'),
+    path('api/auth/check-block/', CheckBlockStatusView.as_view(), name='check_block_status'),
+    path('api/auth/unblock/', UnblockUserView.as_view(), name='unblock_user'),
+    
     path('master/orders/', master_orders, name='master_orders'),
     path('admin-panel/orders/', admin_orders, name='admin_orders'),
     path('admin-panel/orders/<int:order_id>/change-status/', change_order_status, name='change_order_status'),
-        path('client/orders/', client_orders, name='client_orders'),
+    path('client/orders/', client_orders, name='client_orders'),
 ]

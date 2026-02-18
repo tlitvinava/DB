@@ -20,6 +20,7 @@ from django.contrib.auth import views as auth_views
 from core.views import home
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     # стандартная админка
@@ -27,10 +28,16 @@ urlpatterns = [
 
     # маршруты приложения core (твои заказы + API)
     path("", include("core.urls")),
+    
+    # Стандартная сессионная аутентификация (оставляем для обратной совместимости)
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
     # главная
     path('', home, name='home'),
     path('register/', register, name='register'),
+    
+    # JWT Token endpoints (стандартные DRF SimpleJWT)
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -33,7 +33,10 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +48,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -163,6 +167,7 @@ STATICFILES_DIRS = [ BASE_DIR / "static" ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -170,4 +175,60 @@ REST_FRAMEWORK = {
     ],
 }
 
+# JWT Settings
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+}
+
+# Redis Settings
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+REDIS_DB = 0
+
+# Login attempt settings
+MAX_LOGIN_ATTEMPTS = 3
+LOGIN_BLOCK_DURATION = 600  # 10 minutes in seconds
+
 TEMPLATES[0]['DIRS'] = [BASE_DIR / 'templates']
+
+# CORS Settings
+CORS_ALLOW_ALL_ORIGINS = True  # Разрешить все origins для разработки
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:8000",
+#     "http://127.0.0.1:8000",
+#     "http://localhost:3000",
+# ]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
