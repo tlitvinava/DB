@@ -16,6 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from accounts.views import register
+from accounts.auth_views import LoginViewWithBlacklist
 from django.contrib.auth import views as auth_views
 from core.views import home
 from django.conf import settings
@@ -29,8 +30,8 @@ urlpatterns = [
     # маршруты приложения core (твои заказы + API)
     path("", include("core.urls")),
     
-    # Стандартная сессионная аутентификация (оставляем для обратной совместимости)
-    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    # Стандартная сессионная аутентификация с блэклистом
+    path('login/', LoginViewWithBlacklist.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
     # главная

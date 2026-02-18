@@ -257,3 +257,94 @@ footer {
   background: #d32f2f;
   transform: translateY(-1px);
 }
+
+/* Стили для форм */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(11, 170, 85, 0.1);
+}
+
+/* Улучшенные стили для сообщений */
+.login-messages {
+  margin-bottom: 20px;
+}
+
+.message-block {
+  padding: 14px 18px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.message-error {
+  background-color: #ffebee;
+  border-left: 4px solid #c62828;
+  color: #c62828;
+}
+
+.message-warning {
+  background-color: #fff3e0;
+  border-left: 4px solid #ef6c00;
+  color: #ef6c00;
+}
+
+.message-success {
+  background-color: #e8f5e9;
+  border-left: 4px solid #2e7d32;
+  color: #2e7d32;
+}
+
+.message-info {
+  background-color: #e3f2fd;
+  border-left: 4px solid #1976d2;
+  color: #1976d2;
+}
+
+.attempts-info {
+  background-color: #f5f5f5;
+  border-left: 4px solid #616161;
+  color: #424242;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-top: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Анимация для сообщений */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-block {
+  animation: slideIn 0.3s ease-out;
+}

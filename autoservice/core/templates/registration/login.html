@@ -1,11 +1,67 @@
 {% extends "base.html" %}
 {% block title %}Вход{% endblock %}
+
+{% block extra_head %}
+<style>
+  .login-messages {
+    margin-bottom: 20px;
+  }
+  .message-block {
+    padding: 12px 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  .message-error {
+    background-color: #ffebee;
+    border-left: 4px solid #c62828;
+    color: #c62828;
+  }
+  .message-warning {
+    background-color: #fff3e0;
+    border-left: 4px solid #ef6c00;
+    color: #ef6c00;
+  }
+  .message-success {
+    background-color: #e8f5e9;
+    border-left: 4px solid #2e7d32;
+    color: #2e7d32;
+  }
+  .attempts-info {
+    background-color: #e3f2fd;
+    border-left: 4px solid #1976d2;
+    color: #1976d2;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="card">
   <h2>Вход</h2>
+  
+  {% if messages %}
+  <div class="login-messages">
+    {% for message in messages %}
+      <div class="message-block message-{{ message.tags }}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div class="form-group">
+      <label for="id_username">Email:</label>
+      <input type="text" name="username" id="id_username" class="form-control" required autofocus>
+    </div>
+    <div class="form-group">
+      <label for="id_password">Пароль:</label>
+      <input type="password" name="password" id="id_password" class="form-control" required>
+    </div>
     <button class="btn" type="submit">Войти</button>
   </form>
 
@@ -13,5 +69,10 @@
     Ещё нет аккаунта?
     <a href="{% url 'register' %}">Зарегистрироваться</a>
   </p>
+  
+  <div class="attempts-info">
+    <strong>Информация о безопасности:</strong><br>
+    После 3 неудачных попыток входа пользователь будет заблокирован на 10 минут.
+  </div>
 </div>
 {% endblock %}
