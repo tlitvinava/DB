@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 from django.contrib.auth import views as auth_views
 from django.contrib.auth import authenticate, login
 from django.shortcuts import redirect, render
 from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
-from .redis_blacklist import redis_blacklist
+from core.redis_blacklist import redis_blacklist
 from django.conf import settings
 import logging
 
