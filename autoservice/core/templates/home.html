@@ -1,12 +1,160 @@
 {% extends "base.html" %}
 
-{% block title %}Главная{% endblock %}
+{% block title %}Home{% endblock %}
+
+{% block extra_head %}
+<style>
+  .token-info {
+    background-color: #e8f5e9;
+    border-left: 4px solid #2e7d32;
+    color: #2e7d32;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .token-info h3 {
+    margin-top: 0;
+    color: #2e7d32;
+  }
+  .token-info button {
+    margin-top: 10px;
+    margin-right: 8px;
+    padding: 8px 14px;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .token-info button:hover {
+    background: #1b5e20;
+  }
+  .token-info button.secondary {
+    background: #616161;
+  }
+  .token-info pre {
+    background: #f5f5f5;
+    padding: 10px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 12px;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="card">
-    <h1>Привет, {{ request.user.name }}!</h1>
-    <form action="{% url 'login' %}" method="get">
-        <button type="submit">Выйти из аккаунта</button>
+    <h1>Hello, {{ request.user.name }}!</h1>
+    <p>Welcome to the Auto Service application.</p>
+    
+    <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn">Logout</button>
     </form>
+    
+    <div id="tokenInfo" class="token-info" style="display: none;">
+        <h3>JWT Token (for API)</h3>
+        <p><strong>User:</strong> <span id="userInfo"></span></p>
+        <p><strong>Access Token:</strong></p>
+        <pre id="tokenPreview"></pre>
+        <button onclick="testApi()">Test API (/api/orders/)</button>
+        <button onclick="showFullToken()">Show Full Token</button>
+        <button onclick="refreshToken()" class="secondary">Refresh Token</button>
+        <button onclick="clearToken()" class="secondary">Clear Token</button>
+    </div>
+    
+    <div id="noToken" class="token-info" style="display: none; background-color: #fff3e0; border-left-color: #ef6c00;">
+        <h3 style="color: #ef6c00;">No JWT Token</h3>
+        <p>You can get a JWT token by logging in via the login page.</p>
+        <a href="{% url 'login' %}" class="btn">Go to Login</a>
+    </div>
 </div>
+
+<script>
+  function checkToken() {
+    const token = localStorage.getItem('access_token');
+    const userEmail = localStorage.getItem('user_email');
+    const userName = localStorage.getItem('user_name');
+    
+    if (token) {
+      document.getElementById('tokenInfo').style.display = 'block';
+      document.getElementById('noToken').style.display = 'none';
+      document.getElementById('userInfo').textContent = userName + ' (' + userEmail + ')';
+      document.getElementById('tokenPreview').textContent = token.substring(0, 80) + '...';
+    } else {
+      document.getElementById('tokenInfo').style.display = 'none';
+      document.getElementById('noToken').style.display = 'block';
+    }
+  }
+  
+  function testApi() {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      alert('No token found');
+      return;
+    }
+    
+    fetch('/api/orders/', {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      alert('API Response:\n' + JSON.stringify(data, null, 2).substring(0, 500));
+    })
+    .catch(err => {
+      alert('API Error: ' + err);
+    });
+  }
+  
+  function showFullToken() {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      alert('Full Access Token:\n' + token);
+    }
+  }
+  
+  function refreshToken() {
+    const refresh = localStorage.getItem('refresh_token');
+    if (!refresh) {
+      alert('No refresh token found');
+      return;
+    }
+    
+    fetch('/api/token/refresh/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ refresh: refresh })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.access) {
+        localStorage.setItem('access_token', data.access);
+        checkToken();
+        alert('Token refreshed successfully!');
+      } else {
+        alert('Error refreshing token: ' + JSON.stringify(data));
+      }
+    })
+    .catch(err => {
+      alert('Error: ' + err);
+    });
+  }
+  
+  function clearToken() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_name');
+    checkToken();
+    alert('Tokens cleared');
+  }
+  
+  // Check token on page load
+  checkToken();
+</script>
 {% endblock %}
