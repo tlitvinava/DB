@@ -13,67 +13,61 @@ logger = logging.getLogger(__name__)
 
 
 class LoginViewWithBlacklist(auth_views.LoginView):
-    """Кастомный LoginView с проверкой Redis блэклиста"""
+    """Custom LoginView with Redis blacklist check"""
     
     template_name = 'registration/login.html'
     
     @method_decorator(csrf_protect)
     def dispatch(self, request, *args, **kwargs):
-        # Проверяем блокировку до обработки формы
         if request.method == 'POST':
-            email = request.POST.get('username', '')  # Django использует username для email
+            email = request.POST.get('username', '')
             
             if email:
-                # Проверяем, заблокирован ли пользователь
                 if redis_blacklist.is_blocked(email):
                     ttl = redis_blacklist.get_block_ttl(email)
                     minutes = ttl // 60
                     seconds = ttl % 60
                     
-                    logger.warning(f"Заблокированная попытка входа: {email}, осталось {ttl} сек")
+                    logger.warning(f"Blocked login attempt: {email}, {ttl} sec remaining")
                     messages.error(
                         request, 
-                        f'Пользователь временно заблокирован. Попробуйте через {minutes} мин {seconds} сек.'
+                        f'Account is temporarily blocked. Try again in {minutes} min {seconds} sec.'
                     )
                     return self.render_to_response(self.get_context_data())
         
         return super().dispatch(request, *args, **kwargs)
     
     def form_invalid(self, form):
-        """Вызывается при неудачной попытке входа"""
+        """Called on failed login attempt"""
         email = form.data.get('username', '')
         
         if email:
-            # Увеличиваем счетчик попыток
             attempts = redis_blacklist.increment_attempts(email)
             remaining = settings.MAX_LOGIN_ATTEMPTS - attempts
             
-            logger.warning(f"Неудачная попытка входа: {email}, попытка {attempts}/{settings.MAX_LOGIN_ATTEMPTS}")
+            logger.warning(f"Failed login attempt: {email}, attempt {attempts}/{settings.MAX_LOGIN_ATTEMPTS}")
             
-            # Проверяем, нужно ли заблокировать
             if attempts >= settings.MAX_LOGIN_ATTEMPTS:
                 redis_blacklist.block_user(email)
-                logger.error(f"Пользователь заблокирован: {email} после {attempts} попыток")
+                logger.error(f"User blocked: {email} after {attempts} attempts")
                 messages.error(
                     self.request,
-                    f'Пользователь заблокирован на 10 минут после {settings.MAX_LOGIN_ATTEMPTS} неудачных попыток.'
+                    f'Account blocked for 10 minutes after {settings.MAX_LOGIN_ATTEMPTS} failed attempts.'
                 )
             else:
-                # Показываем сколько осталось попыток
                 messages.warning(
                     self.request,
-                    f'Неверный email или пароль. Осталось попыток: {remaining}'
+                    f'Invalid email or password. Attempts remaining: {remaining}'
                 )
         
         return super().form_invalid(form)
     
     def form_valid(self, form):
-        """Вызывается при успешном входе"""
+        """Called on successful login"""
         email = form.cleaned_data.get('username', '')
         
         if email:
-            # Сбрасываем счетчик попыток
             redis_blacklist.reset_attempts(email)
-            logger.info(f"Успешный вход: {email}")
+            logger.info(f"Successful login: {email}")
         
         return super().form_valid(form)

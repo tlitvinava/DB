@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Вход{% endblock %}
+{% block title %}Login{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -40,7 +40,7 @@
 
 {% block content %}
 <div class="card">
-  <h2>Вход</h2>
+  <h2>Login</h2>
   
   {% if messages %}
   <div class="login-messages">
@@ -59,20 +59,20 @@
       <input type="text" name="username" id="id_username" class="form-control" required autofocus>
     </div>
     <div class="form-group">
-      <label for="id_password">Пароль:</label>
+      <label for="id_password">Password:</label>
       <input type="password" name="password" id="id_password" class="form-control" required>
     </div>
-    <button class="btn" type="submit">Войти</button>
+    <button class="btn" type="submit">Login</button>
   </form>
 
   <p style="margin-top:15px;">
-    Ещё нет аккаунта?
-    <a href="{% url 'register' %}">Зарегистрироваться</a>
+    No account?
+    <a href="{% url 'register' %}">Register</a>
   </p>
   
   <div class="attempts-info">
-    <strong>Информация о безопасности:</strong><br>
-    После 3 неудачных попыток входа пользователь будет заблокирован на 10 минут.
+    <strong>Security Info:</strong><br>
+    After 3 failed login attempts, the account will be blocked for 10 minutes.
   </div>
 </div>
 {% endblock %}
