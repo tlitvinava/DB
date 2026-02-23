@@ -17,31 +17,25 @@ class LoginViewWithBlacklist(auth_views.LoginView):
     
     template_name = 'registration/login.html'
     
-    @method_decorator(csrf_protect)
-    def dispatch(self, request, *args, **kwargs):
-        if request.method == 'POST':
-            email = request.POST.get('username', '')
-            
-            if email:
-                if redis_blacklist.is_blocked(email):
-                    ttl = redis_blacklist.get_block_ttl(email)
-                    minutes = ttl // 60
-                    seconds = ttl % 60
-                    
-                    logger.warning(f"Blocked login attempt: {email}, {ttl} sec remaining")
-                    messages.error(
-                        request, 
-                        f'Account is temporarily blocked. Try again in {minutes} min {seconds} sec.'
-                    )
-                    return self.render_to_response(self.get_context_data())
-        
-        return super().dispatch(request, *args, **kwargs)
-    
     def form_invalid(self, form):
-        """Called on failed login attempt"""
+        """Called on failed login attempt - single message only"""
         email = form.data.get('username', '')
         
         if email:
+            # Check if user is already blocked first
+            if redis_blacklist.is_blocked(email):
+                ttl = redis_blacklist.get_block_ttl(email)
+                minutes = ttl // 60
+                seconds = ttl % 60
+                
+                logger.warning(f"Blocked login attempt: {email}, {ttl} sec remaining")
+                messages.error(
+                    self.request, 
+                    f'Account is temporarily blocked. Try again in {minutes} min {seconds} sec.'
+                )
+                return super().form_invalid(form)
+            
+            # Increment failed attempts
             attempts = redis_blacklist.increment_attempts(email)
             remaining = settings.MAX_LOGIN_ATTEMPTS - attempts
             
