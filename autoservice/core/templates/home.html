@@ -46,22 +46,22 @@
 {% block content %}
 <div class="card">
     <h1>Hello, {{ request.user.name }}!</h1>
-    <p>Welcome to the Auto Service application.</p>
+    <p>Добро пожаловать!</p>
     
     <form action="{% url 'logout' %}" method="post">
         {% csrf_token %}
-        <button type="submit" class="btn">Logout</button>
+        <button type="submit" class="btn">Выйти</button>
     </form>
     
     <div id="tokenInfo" class="token-info" style="display: none;">
-        <h3>JWT Token (for API)</h3>
-        <p><strong>User:</strong> <span id="userInfo"></span></p>
+        <h3>JWT Token</h3>
+        <p><strong>Пользователь:</strong> <span id="userInfo"></span></p>
         <p><strong>Access Token:</strong></p>
         <pre id="tokenPreview"></pre>
-        <button onclick="testApi()">Test API (/api/orders/)</button>
-        <button onclick="showFullToken()">Show Full Token</button>
-        <button onclick="refreshToken()" class="secondary">Refresh Token</button>
-        <button onclick="clearToken()" class="secondary">Clear Token</button>
+        <button onclick="testApi()">Test API (заказы)</button>
+        <button onclick="showFullToken()">Показать токен полностью</button>
+        <button onclick="refreshToken()" class="secondary">Обновить токен</button>
+        <button onclick="clearToken()" class="secondary">Очистить токен</button>
     </div>
     
     <div id="noToken" class="token-info" style="display: none; background-color: #fff3e0; border-left-color: #ef6c00;">
