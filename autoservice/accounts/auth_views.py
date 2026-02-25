@@ -57,7 +57,7 @@ class LoginViewWithBlacklist(auth_views.LoginView):
             else:
                 messages.warning(
                     self.request,
-                    f'Invalid email or password. Attempts remaining: {remaining}'
+                    f'Invalid email or password. Attempts remaining: {attempts}'
                 )
         
         return super().form_invalid(form)
